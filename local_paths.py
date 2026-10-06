@@ -25,7 +25,7 @@ SCENES_ROOT = Path(os.environ.get(
     "VLN_SCENES_ROOT", "/home/irteam/data-vol1/InternData-N1/scene_data"))
 
 CACHE_ROOT = Path(os.environ.get(
-    "VLN_CACHE_ROOT", "/home/irteam/data-vol1/relabel_cache"))
+    "VLN_CACHE_ROOT", "/home/irteam/data-vol1/vln/relabel_cache"))
 
 # Per-split cache subtrees. gate3 writes episode_{id:06d}.json with no split
 # qualifier, so the splits MUST stay in separate directories or train silently

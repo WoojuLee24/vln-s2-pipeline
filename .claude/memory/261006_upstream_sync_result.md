@@ -26,7 +26,7 @@
   - `VERSION`: 생성기 선택 (기본 v218)
   - `--splits val_unseen`: 일부 split만 생성
   - `LABEL=<이름>`: 출력 파일 이름(`{split}_<LABEL>.json.gz`) 지정
-- 결과 저장 위치: `/home/irteam/data-vol1/relabel_cache/datasets/`
+- 결과 저장 위치: `/home/irteam/data-vol1/vln/relabel_cache/datasets/`
 
 **검증:** 기존 `*_v218_reproduce` / `*_v219_reproduce`와 비교했다.
 
@@ -129,7 +129,7 @@ gate3 캐시가 없어도 에러가 나지 않는다. 대신 조용히 템플릿
 GT(`vln/mp3d/r2r/v1`)는 `data-vol2/vln/mp3d/r2r/v1`에 이미 같은 파일이 있다 (cmp 동일).
 
 새 노드에서 복원 (필수 2개):
-`mkdir -p /home/irteam/data-vol1/relabel_cache && cd /home/irteam/data-vol1/relabel_cache && tar xzf /home/irteam/data-vol2/relabel_cache/gate3_perframe_20261005.tar.gz && tar xzf /home/irteam/data-vol2/relabel_cache/datasets_20261006.tar.gz`
+`mkdir -p /home/irteam/data-vol1/vln/relabel_cache && cd /home/irteam/data-vol1/vln/relabel_cache && tar xzf /home/irteam/data-vol2/relabel_cache/gate3_perframe_20261005.tar.gz && tar xzf /home/irteam/data-vol2/relabel_cache/datasets_20261006.tar.gz`
 
 복원하지 않고 data-vol2를 바로 쓰는 경우 (GT만):
 `VLN_HABITAT_BASE=/home/irteam/data-vol2/vln/mp3d/r2r/v1 VERSION=v219 python3 generate_v218_all_splits.py`
