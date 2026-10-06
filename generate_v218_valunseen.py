@@ -20,19 +20,24 @@ from pathlib import Path
 PIPELINE_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PIPELINE_ROOT))
 
-from metadata_reproducer import reproduce_instruction, _make_rng
+from metadata_reproducer_v218 import reproduce_instruction, _make_rng
 
-HABITAT_BASE = Path("/mnt/nvme0/vln_habitat/habitat_data/datasets/vln/mp3d/r2r/v1")
-OUT_DIR = PIPELINE_ROOT / "outputs" / "datasets"
+import os
+from local_paths import GT_PATHS, PERFRAME_DIR as _PF, LANDMARK_DIR as _LM, DATASETS_DIR
+
+OUT_DIR = DATASETS_DIR
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-PERFRAME_DIR = PIPELINE_ROOT / "outputs" / "gate3_perframe"
-LANDMARK_DIR = PIPELINE_ROOT / "outputs" / "gate3_landmarks"
+PERFRAME_DIR = _PF / "val_unseen"
+LANDMARK_DIR = _LM / "val_unseen"
 
+# OUT_TAG lets the same script produce the restored-v218 and the v219 outputs
+# side by side for the A/B comparison. Deploy-into-the-GT-tree is removed:
+# the original wrote straight into the read-only dataset directory.
 VERSION = "v218"
-GT_PATH = HABITAT_BASE / "val_unseen" / "val_unseen_patched.json.gz"
-OUT_NAME = f"val_unseen_auto_{VERSION}.json.gz"
-DEPLOY_PATH = HABITAT_BASE / "val_unseen" / OUT_NAME
+OUT_TAG = os.environ.get("OUT_TAG", f"auto_{VERSION}")
+GT_PATH = GT_PATHS["val_unseen"]
+OUT_NAME = f"val_unseen_{OUT_TAG}.json.gz"
 
 
 def main():
@@ -131,10 +136,7 @@ def main():
     with gzip.open(local_path, "wt") as f:
         json.dump(out_data, f)
     print(f"\nSaved:    {local_path} ({local_path.stat().st_size//1024} KB)")
-    DEPLOY_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with gzip.open(DEPLOY_PATH, "wt") as f:
-        json.dump(out_data, f)
-    print(f"Deployed: {DEPLOY_PATH}")
+    # (deploy into the GT tree intentionally removed — GT is read-only here)
 
 
 if __name__ == "__main__":

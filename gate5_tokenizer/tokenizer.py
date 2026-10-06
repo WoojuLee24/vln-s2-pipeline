@@ -10,7 +10,9 @@ import re
 from pathlib import Path
 from typing import List, Optional
 
-VOCAB_SOURCE = "/mnt/nvme0/vln_habitat/habitat_data/datasets/vln/mp3d/r2r/v1/val_unseen/val_unseen_patched.json.gz"
+import sys as _sys; _sys.path.insert(0, str(Path(__file__).parent.parent))
+from local_paths import VOCAB_SOURCE as _VS
+VOCAB_SOURCE = str(_VS)
 PAD_LENGTH = 200
 PAD_INDEX = 0
 UNK_INDEX = 1

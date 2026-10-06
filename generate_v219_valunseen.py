@@ -14,7 +14,7 @@ from pathlib import Path
 
 PIPELINE_ROOT = Path(__file__).parent
 sys.path.insert(0, str(PIPELINE_ROOT))
-from metadata_reproducer import reproduce_instruction, _make_rng
+from metadata_reproducer_v219 import reproduce_instruction, _make_rng
 
 HABITAT_BASE = Path("/mnt/nvme0/vln_habitat/habitat_data/datasets/vln/mp3d/r2r/v1")
 OUT_DIR = PIPELINE_ROOT / "outputs" / "datasets"

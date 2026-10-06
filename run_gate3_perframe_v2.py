@@ -37,8 +37,12 @@ sys.path.insert(0, str(ROOT))
 
 from gate4_instructions.gemma_vllm_backend import VLLM_BASE_URL, VLLM_MODEL, VLLM_API_KEY
 
-FRAMES_DIR = ROOT / "outputs" / "rendered_frames"
-OUT_DIR    = ROOT / "outputs" / "gate3_perframe"
+from local_paths import FRAMES_DIR as _FD, PERFRAME_DIR as _PF
+
+# Defaults target val_unseen; pass --frames-dir/--out-dir for the other splits.
+# They MUST differ per split: output is episode_{id:06d}.json with no split tag.
+FRAMES_DIR = _FD / "val_unseen"
+OUT_DIR    = _PF / "val_unseen"
 CONCURRENCY = 10  # vision calls are heavy; 10 is stable
 
 # ── Prompts ───────────────────────────────────────────────────────────────────
@@ -219,14 +223,20 @@ async def process_episode(
     return result
 
 
-async def run_batch(frames_dir: Path, out_dir: Path, n_episodes: Optional[int], concurrency: int):
+async def run_batch(frames_dir: Path, out_dir: Path, n_episodes: Optional[int], concurrency: int,
+                    base_url: str = VLLM_BASE_URL, shard_idx: int = 0, n_shards: int = 1):
     from openai import AsyncOpenAI
-    client = AsyncOpenAI(base_url=VLLM_BASE_URL, api_key=VLLM_API_KEY)
+    client = AsyncOpenAI(base_url=base_url, api_key=VLLM_API_KEY)
     sem = asyncio.Semaphore(concurrency)
 
     ep_dirs = sorted(frames_dir.glob("episode_*"))
     if n_episodes:
         ep_dirs = ep_dirs[:n_episodes]
+    # Strided shard so several local vLLM replicas can split one frames dir.
+    # Applied before the done-filter, so each shard owns a fixed episode set
+    # across restarts and resume stays correct.
+    if n_shards > 1:
+        ep_dirs = ep_dirs[shard_idx::n_shards]
 
     # Skip already completed
     pending = []
@@ -245,7 +255,7 @@ async def run_batch(frames_dir: Path, out_dir: Path, n_episodes: Optional[int], 
     total = len(pending) + already_done
     print(f"=== Gate 3 v2: Per-Frame Turn Landmark Detection ===")
     print(f"  Model:     {VLLM_MODEL}")
-    print(f"  Server:    {VLLM_BASE_URL}")
+    print(f"  Server:    {base_url}" + (f"  (shard {shard_idx}/{n_shards})" if n_shards > 1 else ""))
     print(f"  Episodes:  {total} total, {already_done} cached, {len(pending)} pending")
     print(f"  Output:    {out_dir}")
     print(f"  Conc:      {concurrency}")
@@ -262,7 +272,9 @@ async def run_batch(frames_dir: Path, out_dir: Path, n_episodes: Optional[int], 
     async def run_one(ep_dir):
         try:
             r = await process_episode(client, sem, ep_dir, out_dir)
-            if r and "error" not in r.get("start", {}):
+            # result["start"] stays None when no start frame was rendered, and
+            # `"error" not in None` raises — guard with `or {}`.
+            if r and "error" not in (r.get("start") or {}):
                 done[0] += 1
             else:
                 errors[0] += 1
@@ -300,10 +312,15 @@ def main():
     ap.add_argument("--concurrency", type=int, default=CONCURRENCY)
     ap.add_argument("--frames-dir", default=str(FRAMES_DIR))
     ap.add_argument("--out-dir", default=str(OUT_DIR))
+    ap.add_argument("--base-url", default=VLLM_BASE_URL,
+                    help="vLLM endpoint; point each shard at its own replica")
+    ap.add_argument("--shard-idx", type=int, default=0)
+    ap.add_argument("--n-shards", type=int, default=1)
     args = ap.parse_args()
     asyncio.run(run_batch(
         Path(args.frames_dir), Path(args.out_dir),
-        args.n_episodes, args.concurrency
+        args.n_episodes, args.concurrency,
+        base_url=args.base_url, shard_idx=args.shard_idx, n_shards=args.n_shards,
     ))
 
 

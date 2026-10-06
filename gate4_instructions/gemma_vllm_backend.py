@@ -7,14 +7,17 @@ Supports both text-only and vision (image) modes.
 import asyncio
 import base64
 import json
+import os
 import re
 from pathlib import Path
 from typing import List, Optional, Dict
 
 from openai import AsyncOpenAI, OpenAI
 
-VLLM_BASE_URL = "http://10.77.32.231:8000/v1"
-VLLM_MODEL = "cyankiwi/gemma-4-31B-it-AWQ-4bit"
+# Endpoint is overridable so several local vLLM replicas can be sharded across.
+# The original single remote endpoint stays the default.
+VLLM_BASE_URL = os.environ.get("VLLM_BASE_URL", "http://10.77.32.231:8000/v1")
+VLLM_MODEL = os.environ.get("VLLM_MODEL", "cyankiwi/gemma-4-31B-it-AWQ-4bit")
 VLLM_API_KEY = "EMPTY"
 MAX_CONTEXT = 4096
 MAX_NEW_TOKENS = 256

@@ -17,18 +17,18 @@ Research findings (from v203 analysis):
   - 3-sentence rate ~38% optimal
   - Vocabulary diversity (go_past, pass_the, walk_toward) boosts model grounding
 
-v219 (opening-sentence implicit turns):
-  - v218 reduced unhandled-turn explicit language (1.97 vs GT=0.66)
-  - v219 extends to opening sentence: when non-sharp turn leads to known t0_room,
-    prefer "Exit the bedroom and walk into the hallway" over "Exit the bedroom and turn left."
-  - Applied in 3 patterns: (A) n_turns==1 closed-room exit, (B) r<0.28 merge,
-    (C) r<0.82 closed/open room exit. Probability 55-60% when conditions met.
-  - Expected avg_explicit_turns: ~1.3-1.5 (GT=0.66, v218=1.97)
-
-v220 (higher implicit rate for interior turns):
-  - _turn_frag_with_room: room_changed branch threshold 0.70→0.85, implicit prob 0.65→0.80
-  - Combined: 45.5%→68% implicit rate for room-changing non-sharp interior turns
-  - Expected avg_explicit_turns: ~1.2-1.4 (GT=0.66, v219=1.87)
+v218 (RESTORED 2026-10-05 — see metadata_reproducer_v219.py for the v219 state):
+  - v218 reduced unhandled-turn explicit language in the TURN-FRAGMENT builder
+    (see the v218 comments near _frag_fn_gate3). Measured avg_explicit_turns = 1.97.
+  - The v219 opening-sentence changes have been REVERTED here. v219 inserted
+    `if <implicit cond> and rng.random() < P:` branches ahead of the explicit-turn
+    branches in 4 places (n_turns==1 closed-room exit, r<0.28 merge, r<0.82
+    closed-room exit, r<0.82 open-room exit).
+  - The reverts remove the rng.random() calls themselves, not just the conditions:
+    the extra draw shifts the per-episode random stream and changes later sentences
+    too. Measured v218 vs v219 on the shipped datasets: 116/1839 val_unseen (6.3%),
+    0/10819 train and 0/778 val_seen (those were generated with perframe={} , so
+    every v213+ change sat behind _has_context and was unreachable).
 
 Usage:
   python metadata_reproducer.py                         # generate all 1839 episodes → v204
@@ -353,22 +353,19 @@ def reproduce_instruction(
     perframe: dict,
     landmark: dict,
     rng: random.Random,
-    turn_threshold: float = 45.0,
 ) -> str:
     """
     Assemble a GT-style navigation instruction from metadata.
     Uses path_analyzer for authoritative turn directions.
     Landmark/room data from perframe (gate3 LLM output).
     Targets ~25 words, calibrated GT vocabulary distributions.
-    turn_threshold: angle in degrees above which a direction change is treated as an explicit turn.
-      Default 45° (v208 calibrated). Higher values (e.g. 90°) reduce turn count toward GT distribution.
     """
     # v208: Uniform 45° turn threshold for all modes.
     # v207 used 60° for path-only → caused 28.4% turn under-detection vs GT.
     # GT val_seen: 84.7% of instructions mention turns; our path-only was only 61.3%.
     # 45° catches real navigational turns without excessive over-detection.
     _has_context = bool(perframe) and bool(perframe.get("start"))
-    _turn_threshold = turn_threshold  # configurable, default 45°
+    _turn_threshold = 45.0  # v208: uniform 45° for all modes
     pa = analyze_path(reference_path, start_rotation, turn_threshold_deg=_turn_threshold)
     turn_prims = [p for p in pa["primitives"] if p["type"] in ("left_turn", "right_turn")]
     elev_prims = [p for p in pa["primitives"] if p["type"] == "elevation"]
@@ -606,36 +603,20 @@ def reproduce_instruction(
 
     elif n_turns == 1 and _is_closed(start_room) and rng.random() < 0.50:
         # Classic exit-and-turn: "Exit the bedroom and turn left [into the hallway]."
-        # v219: non-sharp turns with known destination room → prefer implicit movement language.
         exit_verb = rng.choice(["Exit", "Leave", "Walk out of"])
         td = turns[0]["direction"]
         t0_room = (turns[0].get("room") or "").lower()
-        is_sharp_t0 = turns[0].get("sharp", False)
         room_entry = f" into the {t0_room}" if (_has_context and t0_room and t0_room != start_room.lower()) else ""
-        _use_implicit_exit = _has_context and t0_room and t0_room != start_room.lower() and not is_sharp_t0
         # If post-turn straight is long, merge continuation into s1 or add separately
         if last_straight_m > 4.0 and goal_room and rng.random() < 0.5:
-            if _use_implicit_exit and rng.random() < 0.60:
-                move_v = rng.choice(["walk", "head", "go"])
-                sentences.append(f"{exit_verb} the {start_room} and {move_v} into the {t0_room}.")
-            else:
-                sentences.append(f"{exit_verb} the {start_room} and turn {td}{room_entry}.")
+            sentences.append(f"{exit_verb} the {start_room} and turn {td}{room_entry}.")
             cont_prep = rng.choice(["into", "through", "toward"])
             sentences.append(f"Walk {cont_prep} the {goal_room}.")
         elif last_straight_m > 4.0:
-            if _use_implicit_exit and rng.random() < 0.60:
-                move_v = rng.choice(["walk", "head", "go"])
-                cont_prep = rng.choice(["and continue into", "and walk into", "and head into"])
-                sentences.append(f"{exit_verb} the {start_room} and {move_v} into the {t0_room}.")
-            else:
-                cont_prep = rng.choice(["and continue into", "and walk into", "and head into"])
-                sentences.append(f"{exit_verb} the {start_room} and turn {td} {cont_prep} the {goal_room}.")
+            cont_prep = rng.choice(["and continue into", "and walk into", "and head into"])
+            sentences.append(f"{exit_verb} the {start_room} and turn {td} {cont_prep} the {goal_room}.")
         else:
-            if _use_implicit_exit and rng.random() < 0.60:
-                move_v = rng.choice(["walk", "head", "go"])
-                sentences.append(f"{exit_verb} the {start_room} and {move_v} into the {t0_room}.")
-            else:
-                sentences.append(f"{exit_verb} the {start_room} and turn {td}{room_entry}.")
+            sentences.append(f"{exit_verb} the {start_room} and turn {td}{room_entry}.")
         turns[0]["_handled"] = True
         if _has_context and t0_room:
             _prev_room[0] = t0_room
@@ -670,31 +651,16 @@ def reproduce_instruction(
             # v206e: merge back at 28% (lower merge→more sents). Only walk_past family.
             # v215: door/arch landmarks use "walk through" instead of "walk past".
             # v216: add room entry context when the merged first turn leads to a new room.
-            # v219: implicit movement when non-sharp turn leads to known destination room.
             td = turns[0]["direction"]
             t0_room = (turns[0].get("room") or "").lower()
-            is_sharp_t0 = turns[0].get("sharp", False)
             room_entry = f" into the {t0_room}" if (_has_context and t0_room and t0_room != start_room.lower()) else ""
-            _use_implicit_r28 = _has_context and t0_room and t0_room != start_room.lower() and not is_sharp_t0
-            if _use_implicit_r28 and rng.random() < 0.55:
-                # Implicit: "Walk through the door into the kitchen" / "Walk past the sofa into the living room"
-                if _is_through_lm(start_lm):
-                    verb = rng.choice(["Walk through", "Go through"])
-                    prep = rng.choice(["into", "through"])
-                    sentences.append(f"{verb} the {start_lm} {prep} the {t0_room}.")
-                else:
-                    verb = rng.choice(["Walk past", "Walk straight past", "Walk past"])
-                    lm_part = start_lm if rng.random() < 0.7 else start_room
-                    prep = rng.choice(["into", "toward"])
-                    sentences.append(f"{verb} the {lm_part} {prep} the {t0_room}.")
+            if _has_context and _is_through_lm(start_lm):
+                verb = rng.choice(["Walk through", "Go through"])
+                sentences.append(f"{verb} the {start_lm} and turn {td}{room_entry}.")
             else:
-                if _has_context and _is_through_lm(start_lm):
-                    verb = rng.choice(["Walk through", "Go through"])
-                    sentences.append(f"{verb} the {start_lm} and turn {td}{room_entry}.")
-                else:
-                    verb = rng.choice(["Walk past", "Walk straight past", "Walk past", "Walk past"])
-                    lm_part = start_lm if rng.random() < 0.7 else start_room
-                    sentences.append(f"{verb} the {lm_part} and turn {td}{room_entry}.")
+                verb = rng.choice(["Walk past", "Walk straight past", "Walk past", "Walk past"])
+                lm_part = start_lm if rng.random() < 0.7 else start_room
+                sentences.append(f"{verb} the {lm_part} and turn {td}{room_entry}.")
             turns[0]["_handled"] = True
             # Update _prev_room so subsequent turns see the correct previous room
             if t0_room:
@@ -726,14 +692,8 @@ def reproduce_instruction(
                 exit_verb = rng.choice(["Exit", "Leave", "Walk out of"])
                 td = turns[0]["direction"]
                 t0_room = (turns[0].get("room") or "").lower()
-                is_sharp_t0 = turns[0].get("sharp", False)
                 room_entry = f" into the {t0_room}" if (_has_context and t0_room and t0_room != start_room.lower()) else ""
-                # v219: implicit exit for non-sharp turns with known destination room
-                if _has_context and t0_room and t0_room != start_room.lower() and not is_sharp_t0 and rng.random() < 0.60:
-                    move_v = rng.choice(["walk", "head", "go"])
-                    sentences.append(f"{exit_verb} the {start_room} and {move_v} into the {t0_room}.")
-                else:
-                    sentences.append(f"{exit_verb} the {start_room} and turn {td}{room_entry}.")
+                sentences.append(f"{exit_verb} the {start_room} and turn {td}{room_entry}.")
                 turns[0]["_handled"] = True
                 if t0_room:
                     _prev_room[0] = t0_room
@@ -743,12 +703,7 @@ def reproduce_instruction(
                 exit_verb = rng.choice(["Exit", "Leave", "Walk out of"])
                 td = turns[0]["direction"]
                 t0_room = (turns[0].get("room") or "").lower()
-                is_sharp_t0 = turns[0].get("sharp", False)
-                # v219: implicit movement when non-sharp + known t0_room
-                if _has_context and t0_room and t0_room != start_room.lower() and not is_sharp_t0 and rng.random() < 0.55:
-                    move_v = rng.choice(["walk", "head", "go"])
-                    sentences.append(f"{exit_verb} the {start_room} and {move_v} into the {t0_room}.")
-                elif goal_room and goal_room != start_room and rng.random() < 0.5:
+                if goal_room and goal_room != start_room and rng.random() < 0.5:
                     cont_prep = rng.choice(["into", "toward", "through"])
                     sentences.append(f"{exit_verb} the {start_room} and turn {td} {cont_prep} the {goal_room}.")
                 elif _has_context and t0_room and t0_room != start_room.lower():
@@ -833,8 +788,7 @@ def reproduce_instruction(
         # explicit "turn {direction}". Sharp turns (>75°) keep explicit because direction cue is critical.
         # This reduces explicit turns while matching GT vocabulary distribution.
         def _turn_frag_with_room(t: dict, prev_room: str, capital: bool = False) -> str:
-            """Gate3-mode turn fragment. v218: implicit movement for non-sharp room-change turns.
-            v220: increased implicit rate — room_changed branch 0.70→0.85, implicit prob 0.65→0.80."""
+            """Gate3-mode turn fragment. v218: implicit movement for non-sharp room-change turns."""
             td = t["direction"]
             lm = t.get("landmark")
             turn_room = (t.get("room") or "").lower().strip()
