@@ -133,3 +133,20 @@ GT(`vln/mp3d/r2r/v1`)는 `data-vol2/vln/mp3d/r2r/v1`에 이미 같은 파일이 
 
 복원하지 않고 data-vol2를 바로 쓰는 경우 (GT만):
 `VLN_HABITAT_BASE=/home/irteam/data-vol2/vln/mp3d/r2r/v1 VERSION=v219 python3 generate_v218_all_splits.py`
+
+## 7. Gemma 모델 (gate3 / Gemma 계열 생성용)
+
+Gemma는 스크립트가 직접 로드하지 않는다. **vLLM 서버에 HTTP로 요청**한다.
+- 서버 주소: `VLLM_BASE_URL` 환경변수 (`gate4_instructions/gemma_vllm_backend.py`), 또는 `run_gate3_perframe_v2.py --base-url`
+- 모델 이름: `cyankiwi/gemma-4-31B-it-AWQ-4bit`
+
+**모델 파일 백업:** `/home/irteam/data-vol2/checkpoints/gemma-4-31B-it-AWQ-4bit/` (20 GB, revision `6f1b616`)
+- safetensors 4개 모두 HF 공식 LFS sha256과 일치한다 (2026-10-06).
+- 원본: `~/.cache/huggingface/hub/models--cyankiwi--gemma-4-31B-it-AWQ-4bit`. blob 파일 이름은 sha256이 아니라 xet 해시다.
+
+**vLLM:** `/home/irteam/venvs/vllm_gemma/bin/vllm` (0.31.0). 없는 노드에는 같은 버전을 설치한다.
+
+**서버 실행** (data-vol2 모델 사용. 미실행, 옵션은 CLAUDE.md 기준):
+`/home/irteam/venvs/vllm_gemma/bin/vllm serve /home/irteam/data-vol2/checkpoints/gemma-4-31B-it-AWQ-4bit --served-model-name cyankiwi/gemma-4-31B-it-AWQ-4bit --tensor-parallel-size 2 --max-model-len 4096 --port 8000`
+- `--served-model-name`: 클라이언트가 보내는 모델 이름(`VLLM_MODEL`)과 맞추기 위해 필요하다.
+- 스크립트 쪽: `--base-url http://localhost:8000/v1` 또는 `VLLM_BASE_URL=http://localhost:8000/v1`
