@@ -1,0 +1,126 @@
+# label_quality.yaml — GT 재현(1단계) 용 label 합격 기준
+#
+# 왜 분리했나: 지금까지 기준이 세 군데에 흩어져 있었다.
+#   - GT-match 공식        : instruction_gen.compute_stats 에 하드코딩
+#   - 합격선 0.90          : README.md / docs 산문
+#   - VI 금지어/임계값     : kemal_gpt_eval/eval_vllm*.py 에 두 번 중복 하드코딩
+#   - InternNav           : label 품질 기준 자체가 없음 (SR/SPL 만)
+# 이 파일이 단일 출처다. 코드는 읽기만 한다.
+version: 1
+measured_on: 2026-10-05
+scope: GT 재현 (R2R / Matterport3D). VI(안내견)용 기준은 vi_rules.yaml, 2단계로 유보.
+
+# ── GT 실측 기준값 ───────────────────────────────────────────────────────────
+# 전부 2026-10-05 에 val_unseen.json.gz(1839) / train.json.gz(10819) 에서 직접 측정.
+gt_reference:
+  val_unseen:
+    unique_pct: 100.0
+    content_vocab: 1000
+    avg_words: 26.8
+    turns_per_ep: 0.59
+    stop_pct: 50.8
+    wait_pct: 32.6
+    through_the_pct: 27.2
+    pass_the_pct: 24.3
+    hallway_pct: 20.4
+    distance_mention_pct: 0.22
+    stop_grounded_pct: 35.7      # "stop/wait near|at|by the X"
+    turn_anchored_pct_strict: 3.5   # turn L/R + (at|past|toward|near|by) + the
+    turn_anchored_pct_loose: 6.9    # + into|through|in front of|onto|around
+    no_turn_word_pct: 48.9
+    bare_turn_pct: 35.0
+    direction_consistency: 0.84
+  train:
+    content_vocab: 2232
+    avg_words: 26.7
+    turns_per_ep: 0.59
+    direction_consistency: 0.80
+
+# ── 합격 게이트 ──────────────────────────────────────────────────────────────
+# G1~G6 은 json.gz 만으로 계산된다 (모델 불필요, 수 초). G7 만 GPU 가 필요하다.
+# 순서대로 보고, 앞에서 떨어지면 뒤를 돌릴 이유가 없다.
+gates:
+  - id: G1_split_consistency
+    desc: train / val_seen / val_unseen 이 같은 provenance 클래스여야 한다
+    rule: all_splits_same_class
+    blocking: true
+    rationale: >
+      v218 은 val_unseen 만 시각기반이고 train 은 템플릿이다. 그러면
+      "v218 학습 x v218 평가" 셀조차 학습/평가 분포가 달라 2x2 가 성립하지 않는다.
+
+  - id: G2_unique_sentences
+    desc: 고유 문장 비율
+    metric: unique_pct
+    min: 95.0
+    blocking: true
+    rationale: v6 train 17.2%, 같은 문장 510회
+
+  - id: G3_content_vocab
+    desc: 내용어 어휘 수 / 같은 split 의 GT 값
+    metric: content_vocab_ratio
+    min: 0.20
+    blocking: true
+    rationale: v218 train 53개 vs GT 2232개(비율 0.02) — 랜드마크가 없다
+
+  - id: G4_direction_consistency
+    desc: 경로 기하의 회전 방향과 문장의 left/right 일치율
+    metric: direction_consistency
+    min: 0.80
+    blocking: true
+    rationale: v6 val_unseen 0.47 = 무작위. GT 자신이 0.80~0.84
+    note: 부호는 GT 로 자동 보정한다 (GT 일치율이 높은 쪽을 양으로 둔다)
+
+  - id: G5_distance_mentions
+    desc: "'4 meters' 같은 거리 표기 비율"
+    metric: distance_mention_pct
+    max: 1.0
+    blocking: false
+    rationale: GT 는 10819건 중 10건(0.09%). route_builder.EXTRA_RULES 가 담당
+
+  - id: G6_stop_grounded
+    desc: 정지 지점에 랜드마크가 붙은 비율
+    metric: stop_grounded_pct
+    min: 25.0
+    max: 60.0          # GT 35.7. 상한이 없으면 템플릿이 100% 로 통과한다 (v218 실측 100.0)
+    blocking: true
+    rationale: >
+      사람이 랜드마크를 제일 많이 붙이는 자리가 정지 지점(GT 35.7%)이다.
+      네비게이션 성공은 "어디서 멈추나"로 결정된다(OS-SR).
+      현재 패키지 코드는 vision 이 'goal' 라벨을 만들지 않아 이 값이 0 이다
+      (provenance.yaml: pipeline_components[goal_landmark].source == missing).
+
+  - id: G7_zero_shot_system2
+    desc: 공개 InternVLA-N1-System2 를 이 label 의 val_unseen 으로 평가한 SR
+    metric: success_rate
+    min: 55.0
+    reference: 61.7      # 같은 모델, GT 문장
+    blocking: true
+    cost: GPU 약 1.7h, 학습 불필요
+    rationale: 학습 2x2(하루 단위) 전의 마지막 관문
+
+# ── 참고만 하고 목표로 삼지 않는 것 ─────────────────────────────────────────
+not_targets:
+  - id: gt_match_score
+    where: instruction_gen.compute_stats
+    formula: "1.0 - (|anchor-0.165|*2 + |stop-0.508| + |wait-0.305|)"
+    why_not: >
+      GT 문장 자신을 이 공식에 넣으면 0.720 인데 합격선이 0.90 이다.
+      anchor 목표 0.165 가 실측(엄격 0.035 / 느슨 0.069)의 2.4~4.7배이고
+      그 항에만 x2 가중이 붙어 점수를 지배한다. 최고점 label 은 v24(0.979)인데
+      hallway 51.8%(GT 20.4), through 1.7%(GT 27.2), turns 1.53(GT 0.59) 으로
+      전 label 중 GT 에서 가장 먼 축이다.
+    keep_for: 버전 간 회귀 감시 (절대값이 아니라 변화량만)
+    do_not: 이 점수를 올리는 방향으로 파라미터를 튜닝하는 것
+
+  - id: jaccard_vs_reference_model
+    where: kemal_gpt_eval/eval_vllm.py:word_overlap
+    why_not: >
+      특정 참조 모델(GPT-4o-mini) 출력과의 일치도이지 정답과의 일치도가 아니다.
+      참조 자신이 사양을 위반한다 (20단어 초과 3/100, 문장 2개 이상 3/100).
+      실측: Gemma 가 허용 랜드마크를 더 많이 쓰는데도(44/100 vs 27/100)
+      Jaccard 는 0.624 에 머문다.
+    keep_for: GT 재현에서는 참조를 GT 문장으로 바꿔서만 (gt_jaccard)
+
+  - id: llm_confidence
+    where: kemal_gpt_eval/sample_io.jsonl:gpt4o_mini_confidence
+    why_not: 100건 전부 0.91 인 상수다. tasks.md 의 "평균 신뢰도 0.895" 는 신호가 아니다

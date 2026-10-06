@@ -1,0 +1,57 @@
+# provenance.yaml — "이 문장/코드는 사진에서 왔는가"의 단일 기준
+#
+# 두 레포가 같은 파일을 읽는다:
+#   vln-annotator : tools/check_label.py
+#   InternNav     : scripts/dataset_converters/relabel_vlnce/check_label_quality.py
+# 기준을 바꾸려면 여기만 고친다.
+version: 1
+measured_on: 2026-10-05
+
+# ── 1. label 파일 분류 ────────────────────────────────────────────────────────
+# {split}_<label>.json.gz 하나를 세 부류로 나눈다. 순서대로 평가하고 첫 일치로 확정.
+label_classes:
+  - name: gt_derived
+    desc: GT 문장을 바꿔 쓴 것. 사진을 보고 만든 게 아니다. 새 도메인에서 재현 불가
+    when: {gt_jaccard_min: 0.33}
+  - name: template
+    desc: 고정 문법 생성기. 씬 정보가 거의 없다
+    when: {unique_pct_max: 90.0, content_vocab_max: 150, max_duplicate_min: 21}   # OR 조건
+  - name: vision_grounded
+    desc: 에피소드마다 다른 랜드마크가 들어 있다
+    when: {}
+
+# 내용어 = 불용어 제외, 4자 이상, 소문자화한 단어의 고유 개수
+content_word:
+  min_length: 4
+  stopwords: [a, an, the, and, or, but, to, of, in, on, at, by, for, with, from, into, onto,
+              is, are, was, were, be, been, it, its, this, that, these, those, you, your,
+              we, he, she, they, them, his, her, there, here, then, as, if, so, not, no,
+              yes, do, does, did, done, have, has, had, will, would, can, could, should,
+              may, might, must, about, over, under, up, down, out, off, very, more, most,
+              some, any, all, each, both, few, many, much, once]
+
+# 참고: GT 내용어 어휘 수 (이 값 대비 비율로 본다)
+gt_content_vocab: {train: 2232, val_seen: 725, val_unseen: 1000}
+
+# ── 2. 파이프라인 구성요소의 출처 ────────────────────────────────────────────
+# docs/PROVENANCE.md 의 기계 판독용 사본. source 가 vision 이 아닌 것은
+# 새 도메인(guidedog/factory)으로 갈 때 전부 대체해야 한다.
+pipeline_components:
+  - {id: start_verb,      source: gt,       where: "instruction_gen.gt_start_verb",        note: GT 문장의 첫 단어}
+  - {id: fewshot,         source: gt,       where: "pipeline.ScenePathIndex.top_k",        note: 같은 건물 GT 8문장}
+  - {id: route_geometry,  source: geometry, where: "path_analysis.analyze_path",           note: 결정적, 모델 호출 0}
+  - {id: turn_landmark,   source: vision,   where: "vision.describe_turn_sides",           note: phase 1c}
+  - {id: midpoint_object, source: vision,   where: "vision.classify_midpoints",            note: phase 1b}
+  - {id: start_context,   source: vision,   where: "vision.describe_frames",               note: phase 1a, 프롬프트 문맥 전용}
+  - {id: ending_choice,   source: random,   where: "instruction_gen.choose_stop",          note: episode_id 해시}
+  - {id: goal_landmark,   source: missing,  where: "pipeline.py:165",                      note: "vision 이 'goal' 라벨을 만들지 않음 — 항상 'the destination'"}
+  - {id: word_budget,     source: fixed,    where: "instruction_gen._word_budget",         note: waypoint 수 기반 고정표}
+  - {id: postprocess,     source: fixed,    where: "instruction_gen.clean_instruction, post_process", note: 정규식}
+
+# 출력에 영향이 없는(죽어 있는) 설정값 — 2026-10-05 실측 확인
+inert_knobs:
+  - {id: p_anchor_episode, why: "_select_turns 가 모든 분기에서 입력을 그대로 반환", verified: "0.0 vs 1.0, 500 에피소드, 차이 0건"}
+  - {id: room,             why: "pipeline.py:159-161 에서 '' 하드코딩 → route_builder 분기 도달 불가"}
+  - {id: ahead,            why: 동일}
+  - {id: p_pass_marker,    why: "route 표기만 바꾸고 LLM 출력 빈도는 제어 못 함 (설계상)"}
+  - {id: p_thru_marker,    why: 동일}

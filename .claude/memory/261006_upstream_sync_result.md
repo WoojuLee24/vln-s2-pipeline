@@ -65,7 +65,8 @@ v218과 v219끼리는 val_unseen 116개, val_seen 72개가 다르다. train은 �
 ## 4. 기존 relabel label 품질 체크 (val_unseen 209개 전부, 44초)
 
 명령어 (파일 1개):
-`python3 /home/irteam/git/vln-annotator/tools/check_label.py <val_unseen_X.json.gz> --split val_unseen`
+`python3 gate7_eval/check_label.py <val_unseen_X.json.gz> --gt <val_unseen.json.gz> --split val_unseen`
+3 split 한 번에: `python3 gate7_eval/check_label.py --dir <r2r/v1 폴더> --label v218`
 3 split label은 `scripts/dataset_converters/relabel_vlnce/check_label_quality.py --label all`로 한 번에 돌린다.
 
 - 분류: vision_grounded 194, template 15
@@ -96,7 +97,7 @@ v218과 v219끼리는 val_unseen 116개, val_seen 72개가 다르다. train은 �
 **코드**
 - `git clone https://github.com/WoojuLee24/vln-s2-pipeline.git` (커밋 `2275855` 이상)
 - 파이썬 패키지는 추가로 설치할 게 없다. 생성 코드는 표준 라이브러리만 쓴다.
-- 품질 체크까지 하려면 `vln-annotator`도 필요하다. 다만 `tools/check_label.py`와 `specs/`는 아직 커밋되지 않아서 GitHub에 없다. 직접 복사하거나 먼저 커밋해야 한다. `pyyaml`이 필요하다.
+- 품질 체크: `gate7_eval/check_label.py` (+ `gate7_eval/specs/`). vln-annotator에서 복사했고 결과가 같음을 확인했다. `pyyaml`이 필요하다.
 
 **데이터** (기본 위치: `/home/irteam/data-vol1`. 다른 위치면 환경변수로 지정한다)
 
