@@ -115,3 +115,21 @@ gate3 캐시가 없어도 에러가 나지 않는다. 대신 조용히 템플릿
 `VLN_HABITAT_BASE=<GT v1 폴더> VLN_CACHE_ROOT=<relabel_cache 폴더> VERSION=v219 python3 generate_v218_all_splits.py`
 - `VLN_HABITAT_BASE`: GT `v1` 폴더
 - `VLN_CACHE_ROOT`: gate3 캐시와 결과가 있는 폴더 (`relabel_cache`)
+
+## 6. relabel_cache 백업 (data-vol2, 공유) — 새 노드 복원
+
+`relabel_cache`는 v218/v219 같은 규칙 기반 생성기의 **입력 캐시와 출력**을 담는 폴더다 (`local_paths.CACHE_ROOT`). `data-vol1`은 노드마다 따로라서, 공유 디스크인 `data-vol2/relabel_cache/`에 압축본을 둔다.
+
+| 파일 | 내용 | 원본 대비 검증 |
+|---|---|---|
+| `gate3_perframe_20261005.tar.gz` (1.7 MB) | Gemma gate3 결과. **생성에 필수** | 13436 파일, diff 0 |
+| `datasets_20261006.tar.gz` (3.4 MB) | 생성된 `*_v21[89]_reproduce` 8개 | 파일 수 8 = 8 |
+| `rendered_frames_20261005.tar` (2.9 GB) | habitat 렌더 프레임. gate3를 Gemma로 다시 만들 때만 필요 | 파일 수 63901 = 63901 |
+
+GT(`vln/mp3d/r2r/v1`)는 `data-vol2/vln/mp3d/r2r/v1`에 이미 같은 파일이 있다 (cmp 동일).
+
+새 노드에서 복원 (필수 2개):
+`mkdir -p /home/irteam/data-vol1/relabel_cache && cd /home/irteam/data-vol1/relabel_cache && tar xzf /home/irteam/data-vol2/relabel_cache/gate3_perframe_20261005.tar.gz && tar xzf /home/irteam/data-vol2/relabel_cache/datasets_20261006.tar.gz`
+
+복원하지 않고 data-vol2를 바로 쓰는 경우 (GT만):
+`VLN_HABITAT_BASE=/home/irteam/data-vol2/vln/mp3d/r2r/v1 VERSION=v219 python3 generate_v218_all_splits.py`
