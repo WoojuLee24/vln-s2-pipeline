@@ -1,0 +1,34 @@
+version: 3.0-v264-repro
+vllm:
+  base_url: http://localhost:8000/v1
+  model: cyankiwi/gemma-4-31B-it-AWQ-4bit
+  api_key: token-abc123
+gate3:
+  max_tokens: 120
+  temperature: 0.6
+gate4:
+  max_tokens: 120
+  temperature: 0.6
+  max_retries: 3
+quality:
+  min_words: 6
+  max_words: 80
+  require_stop_condition: true
+  require_landmark: false
+workers: 64
+output:
+  val_unseen:
+    source_dataset: /home/irteam/data-vol1/vln/mp3d/r2r/v1/val_unseen/val_unseen_v264.json.gz
+    frames_dir: /home/irteam/data-vol1/vln/relabel_cache/rendered_frames/val_unseen
+    metadata_dir: /home/irteam/data-vol1/vln/relabel_cache/top5_reproduce/unseen_v264_meta
+    dataset_out: /home/irteam/data-vol1/vln/relabel_cache/top5_reproduce/unseen_v264.json.gz
+  val_seen:
+    source_dataset: /home/irteam/data-vol1/vln/mp3d/r2r/v1/val_seen/val_seen.json.gz
+    frames_dir: /home/irteam/data-vol1/vln/relabel_cache/rendered_frames/val_seen
+    metadata_dir: /home/irteam/data-vol1/vln/relabel_cache/top5_reproduce/seen_v264_meta
+    dataset_out: /home/irteam/data-vol1/vln/relabel_cache/top5_reproduce/seen_v264.json.gz
+  train:
+    source_dataset: /home/irteam/data-vol1/vln/mp3d/r2r/v1/train/train.json.gz
+    frames_dir: /home/irteam/data-vol1/vln/relabel_cache/rendered_frames/train
+    metadata_dir: /home/irteam/data-vol1/vln/relabel_cache/top5_reproduce/train_v264_meta
+    dataset_out: /home/irteam/data-vol1/vln/relabel_cache/top5_reproduce/train_v264.json.gz

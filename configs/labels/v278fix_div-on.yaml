@@ -1,0 +1,4 @@
+label: v278fix_div-on
+base: v278fix
+prompt:
+  diverse_siblings: true

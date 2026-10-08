@@ -1,0 +1,16 @@
+# make_labels.py writes configs/labels/<base>_<name>.yaml for each variant (base + overrides).
+# Name = {axis}-{value}; no dots (InternNav cell file names split on '.'), so 0.7 -> 070.
+base: v278fix
+variants:
+  stop-gtdist:   {prompt: {stop: gtdist}}                      # A: stop/wait/stand/none at GT rates
+  stop-optional: {prompt: {stop: optional}}                    # A': stop phrase allowed, not required
+  len-free:      {prompt: {length: free},   quality: {min_words: 5, max_words: 120}}   # B
+  len-gtdist:    {prompt: {length: gtdist}, quality: {min_words: 5, max_words: 120}}   # B'
+  fewshot-3:     {prompt: {fewshot: 3}}                        # C (uses GT train text as style examples)
+  fewshot-5:     {prompt: {fewshot: 5}}                        # C
+  div-on:        {prompt: {diverse_siblings: true}}            # D
+  g4temp-020:    {gate4: {temperature: 0.2}}                   # E
+  g4temp-070:    {gate4: {temperature: 0.7}}                   # E
+  g4temp-100:    {gate4: {temperature: 1.0}}                   # E
+  g3temp-020:    {gate3: {temperature: 0.2}}                   # F
+  g3temp-070:    {gate3: {temperature: 0.7}}                   # F

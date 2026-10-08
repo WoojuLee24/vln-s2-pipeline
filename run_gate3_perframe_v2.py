@@ -179,7 +179,9 @@ async def process_episode(
     if out_file.exists():
         return json.load(open(out_file))  # already done
 
-    frames = poses.get("frames", [])
+    # run_renderer --check-black: frames still black after retries (camera inside mesh) are dropped.
+    # Only rendered_frames_fix/ carries the flag, so older frame dirs behave exactly as before.
+    frames = [f for f in poses.get("frames", []) if not f.get("black")]
     if not frames:
         return None
 

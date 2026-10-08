@@ -1,0 +1,4 @@
+label: v278fix_g4temp-100
+base: v278fix
+gate4:
+  temperature: 1.0

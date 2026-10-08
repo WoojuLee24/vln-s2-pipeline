@@ -1,0 +1,7 @@
+label: v278fix_len-free
+base: v278fix
+prompt:
+  length: free
+quality:
+  min_words: 5
+  max_words: 120

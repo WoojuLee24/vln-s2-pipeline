@@ -1,0 +1,10 @@
+# Baseline (rule-based MetaReproducer). Not runnable by annotate.py (generator: reproducer):
+#   PERFRAME: run_gate3_perframe_v2.py --frames-dir CACHE_ROOT/rendered_frames_fix/<split>
+#             --out-dir CACHE_ROOT/gate3_perframe_fix/<split>   (temperature 0.1, black frames dropped)
+#   TEXT:     PERFRAME_ROOT=CACHE_ROOT/gate3_perframe_fix LABEL=v218fix python3 generate_v218_all_splits.py
+# Same content as v218_reproduce_fix (generated 2026-10-08).
+label: v218fix
+generator: reproducer
+notes: "MetaReproducer v218 + hfov79 / black-frame fixes; = v218_reproduce_fix"
+frames: rendered_frames_fix
+gate3_perframe: gate3_perframe_fix

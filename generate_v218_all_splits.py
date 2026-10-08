@@ -54,7 +54,7 @@ SPLITS = {
     split: {
         "gt_path": GT_PATHS[split],
         "has_gate3": True,                       # ← the whole point of this file
-        "perframe_dir": PERFRAME_DIR / split,
+        "perframe_dir": Path(os.environ.get("PERFRAME_ROOT", PERFRAME_DIR)) / split,
         "landmark_dir": LANDMARK_DIR / split,
         "out_name": f"{split}_{LABEL}.json.gz",
     }
@@ -92,6 +92,9 @@ def generate_split(split_name: str, cfg: dict) -> list:
             landmark = json.loads(lm_path.read_text()) if lm_path.exists() else {}
             if not perframe:
                 missing_gate3 += 1
+            elif perframe.get("goal") is None:
+                # goal frame dropped as black (run_gate3_perframe_v2 + rendered_frames_fix): no goal landmark
+                perframe["goal"] = {}
         else:
             perframe = {}
             landmark = {}

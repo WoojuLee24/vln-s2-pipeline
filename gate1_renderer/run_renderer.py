@@ -40,7 +40,9 @@ CAMERA_CFG = {
     "sensor_height": 1.25,   # meters above floor (matches Habitat R2R eval)
 }
 JPEG_QUALITY = 88            # good quality / small size balance
-TURN_THRESHOLD_DEG = 25.0    # degrees — headings changed more than this = key turn frame
+TURN_THRESHOLD_DEG = 25.0
+GPU_ID = 0                   # --gpu
+BLACK_MEAN = 3.0             # --check-black: rgb mean below this = failed render    # degrees — headings changed more than this = key turn frame
 
 
 # ── Geometry helpers ───────────────────────────────────────────────────────────
@@ -140,7 +142,8 @@ def make_scene_path(scene_id: str, scenes_root: str) -> str:
     raise FileNotFoundError(f"Scene not found: {scene_id} under {scenes_root}")
 
 
-def render_episodes_in_scene(sim, episodes: List[Dict], output_dir: Path) -> tuple:
+def render_episodes_in_scene(sim, episodes: List[Dict], output_dir: Path, check_black: bool = False,
+                             final: bool = True) -> tuple:
     """
     Render all episodes for one already-loaded Habitat-Sim scene.
     Returns (done, errors) counts.
@@ -177,6 +180,10 @@ def render_episodes_in_scene(sim, episodes: List[Dict], output_dir: Path) -> tup
 
                 obs = sim.get_sensor_observations()
                 rgb_arr = obs["rgb"][:, :, :3]
+                black = bool(check_black and rgb_arr.mean() < BLACK_MEAN)
+                if black and not final:
+                    # transient sim failure (seen on 7y3sRwLe3Va); no poses.json -> retried
+                    raise RuntimeError(f"black frame {fi} (mean {rgb_arr.mean():.1f})")
 
                 img_name = f"frame_{fi:04d}_rgb.jpg"
                 img = Image.fromarray(rgb_arr)
@@ -189,6 +196,7 @@ def render_episodes_in_scene(sim, episodes: List[Dict], output_dir: Path) -> tup
                     "rotation": kf["rotation"],
                     "waypoint_idx": kf["waypoint_idx"],
                     "label": kf["label"],
+                    **({"black": True} if black else {}),  # still black on last try: camera inside mesh
                 })
 
             result = {
@@ -212,7 +220,7 @@ def render_episodes_in_scene(sim, episodes: List[Dict], output_dir: Path) -> tup
 # ── Multi-scene batched rendering ──────────────────────────────────────────────
 
 def render_batch(episodes: List[Dict], scenes_root: str, output_dir: Path,
-                 start: int = 0, end: Optional[int] = None) -> Dict:
+                 start: int = 0, end: Optional[int] = None, check_black: bool = False) -> Dict:
     """
     Render a batch of episodes.
     Groups by scene to load Habitat-Sim Simulator ONCE per scene (~30x speedup).
@@ -256,6 +264,7 @@ def render_batch(episodes: List[Dict], scenes_root: str, output_dir: Path,
         sim_cfg.scene_id = scene_path
         sim_cfg.enable_physics = False
         sim_cfg.allow_sliding = False
+        sim_cfg.gpu_device_id = GPU_ID  # EGL ignores CUDA_VISIBLE_DEVICES
 
         rgb_spec = habitat_sim.CameraSensorSpec()
         rgb_spec.uuid = "rgb"
@@ -268,17 +277,23 @@ def render_batch(episodes: List[Dict], scenes_root: str, output_dir: Path,
         agent_cfg.sensor_specifications = [rgb_spec]
 
         cfg = habitat_sim.Configuration(sim_cfg, [agent_cfg])
-        try:
-            sim = habitat_sim.Simulator(cfg)
-        except Exception as e:
-            print(f"  [ERR] Simulator init failed for {scene_name}: {e}")
-            errors += len(scene_eps)
-            continue
-
-        try:
-            sc_done, sc_err = render_episodes_in_scene(sim, scene_eps, output_dir)
-        finally:
-            sim.close()
+        # check_black: re-create the simulator and retry failed episodes (rendered ones are skipped)
+        n_try = 3 if check_black else 1
+        for attempt in range(n_try):
+            try:
+                sim = habitat_sim.Simulator(cfg)
+            except Exception as e:
+                print(f"  [ERR] Simulator init failed for {scene_name}: {e}")
+                sc_done, sc_err = 0, len(scene_eps)
+                continue
+            try:
+                sc_done, sc_err = render_episodes_in_scene(sim, scene_eps, output_dir, check_black,
+                                                            final=attempt == n_try - 1)
+            finally:
+                sim.close()
+            if not sc_err:
+                break
+            print(f"  attempt {attempt + 1}: {sc_err} errors in {scene_name}", flush=True)
 
         done += sc_done
         errors += sc_err
@@ -308,6 +323,11 @@ def parse_args():
                    help="Max episodes to render (default: all)")
     p.add_argument("--start", type=int, default=0,
                    help="Start episode index")
+    p.add_argument("--hfov", type=float, default=CAMERA_CFG["hfov"],
+                   help="horizontal FOV (default 90 = upstream; InternNav train/eval camera = 79)")
+    p.add_argument("--check-black", action="store_true",
+                   help="fail+retry episodes whose frame is black (mean < BLACK_MEAN)")
+    p.add_argument("--gpu", type=int, default=0, help="habitat-sim gpu_device_id")
     p.add_argument("--dry-run", action="store_true",
                    help="Show render plan without rendering")
     return p.parse_args()
@@ -315,6 +335,9 @@ def parse_args():
 
 def main():
     args = parse_args()
+    CAMERA_CFG["hfov"] = args.hfov
+    global GPU_ID
+    GPU_ID = args.gpu
 
     print("=== Gate 1: Habitat Frame Renderer ===")
     print(f"  GT:         {args.gt_path}")
@@ -368,7 +391,7 @@ def main():
 
     # Run render batch
     render_batch(episodes, args.scenes_root, output_dir,
-                 start=args.start, end=end_idx)
+                 start=args.start, end=end_idx, check_black=args.check_black)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,33 @@
+# Baseline: Kemal v278 (configs/local/annotator_v278_local.yaml) + 3 fixes, seeded.
+#   fixes: keyframes by_waypoint (gate2 waypoint idx -> rendered frame), frames hfov 79 (= InternNav
+#   camera), black frames dropped (rendered with run_renderer.py --hfov 79 --check-black --gpu i).
+# Same pipeline as the earlier unseeded label v278_reproduce_fix.
+label: v278fix
+generator: annotator
+notes: "v278 + key-frame / hfov79 / black-frame fixes, seeded"
+vllm:
+  base_url: http://localhost:8000/v1
+  model: cyankiwi/gemma-4-31B-it-AWQ-4bit
+  api_key: token-abc123
+workers: 64
+seed: 0
+frames: rendered_frames_fix   # under CACHE_ROOT/<frames>/<split>/
+keyframes: by_waypoint        # by_index = upstream (bug)
+gate3:
+  temperature: 0.4
+  max_tokens: 150
+  goal_max_tokens: 80
+gate4:
+  temperature: 0.35
+  max_tokens: 140
+  max_retries: 5              # retry temperature = temperature + 0.1 * attempt
+quality:
+  min_words: 12
+  max_words: 70
+  require_stop_condition: true
+  require_landmark: true
+prompt:
+  length: "15-40"             # "a-b" | free | gtdist (target sampled from GT train word counts)
+  stop: must                  # must | gtdist (stop 55/wait 32/stand 3/none 10) | optional
+  fewshot: 0                  # N GT train sentences of other trajectories as style examples
+  diverse_siblings: false     # show earlier sentences of the same trajectory, ask for a different one

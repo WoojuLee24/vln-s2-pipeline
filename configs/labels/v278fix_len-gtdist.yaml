@@ -1,0 +1,7 @@
+label: v278fix_len-gtdist
+base: v278fix
+prompt:
+  length: gtdist
+quality:
+  min_words: 5
+  max_words: 120

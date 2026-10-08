@@ -1,0 +1,739 @@
+v218fix:
+  base: null
+  generator: reproducer
+  alias_of: v218_reproduce_fix
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 99.9
+      content_vocab: 1043
+      direction: 0.887
+      g6_pct: 100.0
+      words_mean: 26.6
+      words_std: 8.5
+      stop_pct:
+        stop: 60.2
+        wait: 39.8
+      first_word_go_pct: 5.6
+      sibling_f1: 0.661
+      f1_vs_gt: 0.361
+    val_seen:
+      n: 778
+      unique_pct: 99.9
+      content_vocab: 418
+      direction: 0.858
+      g6_pct: 100.0
+      words_mean: 26.0
+      words_std: 8.0
+      stop_pct:
+        stop: 60.8
+        wait: 39.2
+      first_word_go_pct: 4.8
+      sibling_f1: 0.657
+      f1_vs_gt: 0.365
+    val_unseen:
+      n: 1839
+      unique_pct: 99.9
+      content_vocab: 507
+      direction: 0.925
+      g6_pct: 100.0
+      words_mean: 27.5
+      words_std: 8.8
+      stop_pct:
+        stop: 59.3
+        wait: 40.7
+      first_word_go_pct: 4.0
+      sibling_f1: 0.667
+      f1_vs_gt: 0.36
+gt:
+  base: null
+  generator: human (R2R)
+  status: reference
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 100.0
+      content_vocab: 2099
+      direction: 0.82
+      g6_pct: 34.6
+      words_mean: 26.7
+      words_std: 11.8
+      stop_pct:
+        stop: 53.4
+        wait: 31.2
+        none: 12.6
+        stand: 2.8
+      first_word_go_pct: 16.2
+      sibling_f1: 0.396
+      f1_vs_gt: 1.0
+    val_seen:
+      n: 778
+      unique_pct: 100.0
+      content_vocab: 675
+      direction: 0.813
+      g6_pct: 35.2
+      words_mean: 27.1
+      words_std: 11.7
+      stop_pct:
+        stop: 51.8
+        wait: 33.5
+        none: 12.7
+        stand: 1.9
+      first_word_go_pct: 13.5
+      sibling_f1: 0.399
+      f1_vs_gt: 1.0
+    val_unseen:
+      n: 1839
+      unique_pct: 100.0
+      content_vocab: 934
+      direction: 0.856
+      g6_pct: 35.0
+      words_mean: 26.8
+      words_std: 11.4
+      stop_pct:
+        stop: 54.1
+        wait: 30.5
+        none: 12.8
+        stand: 2.6
+      first_word_go_pct: 18.5
+      sibling_f1: 0.393
+      f1_vs_gt: 1.0
+v278fix:
+  screen:
+    subset: 30
+    gen_hash: 56742f30ff0d
+    metrics:
+      val_unseen:
+        n: 30
+        unique_pct: 96.7
+        content_vocab: 89
+        direction: 0.625
+        g6_pct: 93.3
+        words_mean: 23.7
+        words_std: 6.1
+        stop_pct:
+          stop: 100.0
+        first_word_go_pct: 93.3
+        sibling_f1: 0.788
+        f1_vs_gt: 0.306
+  base: null
+  gen_hash: c4e769c4efbd
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 93.9
+      content_vocab: 1135
+      direction: 0.837
+      g6_pct: 91.0
+      words_mean: 26.9
+      words_std: 4.1
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 94.8
+      sibling_f1: 0.831
+      f1_vs_gt: 0.376
+    val_seen:
+      n: 778
+      unique_pct: 94.1
+      content_vocab: 478
+      direction: 0.811
+      g6_pct: 90.0
+      words_mean: 27.0
+      words_std: 3.9
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 96.4
+      sibling_f1: 0.838
+      f1_vs_gt: 0.374
+    val_unseen:
+      n: 1839
+      unique_pct: 94.1
+      content_vocab: 511
+      direction: 0.877
+      g6_pct: 91.2
+      words_mean: 27.1
+      words_std: 4.1
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 96.1
+      sibling_f1: 0.829
+      f1_vs_gt: 0.372
+v278fix_stop-gtdist:
+  screen:
+    subset: 60
+    gen_hash: 984726f2339c
+    metrics:
+      val_unseen:
+        n: 60
+        unique_pct: 98.3
+        content_vocab: 120
+        direction: 0.625
+        g6_pct: 78.3
+        words_mean: 25.4
+        words_std: 6.3
+        stop_pct:
+          stop: 60.0
+          none: 11.7
+          wait: 25.0
+          stand: 3.3
+        first_word_go_pct: 90.0
+        sibling_f1: 0.777
+        f1_vs_gt: 0.332
+  base: v278fix
+  gen_hash: 984726f2339c
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 97.5
+      content_vocab: 1144
+      direction: 0.84
+      g6_pct: 83.1
+      words_mean: 27.0
+      words_std: 4.0
+      stop_pct:
+        stop: 54.6
+        wait: 32.5
+        none: 10.1
+        stand: 2.8
+      first_word_go_pct: 93.6
+      sibling_f1: 0.796
+      f1_vs_gt: 0.372
+    val_seen:
+      n: 778
+      unique_pct: 96.3
+      content_vocab: 463
+      direction: 0.831
+      g6_pct: 81.2
+      words_mean: 26.8
+      words_std: 3.9
+      stop_pct:
+        stop: 53.6
+        wait: 31.2
+        none: 11.1
+        stand: 4.1
+      first_word_go_pct: 95.1
+      sibling_f1: 0.805
+      f1_vs_gt: 0.371
+    val_unseen:
+      n: 1839
+      unique_pct: 97.9
+      content_vocab: 514
+      direction: 0.877
+      g6_pct: 81.6
+      words_mean: 27.2
+      words_std: 4.1
+      stop_pct:
+        stop: 54.3
+        wait: 32.2
+        none: 10.3
+        stand: 3.2
+      first_word_go_pct: 94.7
+      sibling_f1: 0.796
+      f1_vs_gt: 0.368
+v278fix_div-on:
+  screen:
+    subset: 30
+    gen_hash: 73fff5b2905e
+    metrics:
+      val_unseen:
+        n: 30
+        unique_pct: 100.0
+        content_vocab: 110
+        direction: 0.692
+        g6_pct: 70.0
+        words_mean: 23.8
+        words_std: 5.4
+        stop_pct:
+          stop: 100.0
+        first_word_go_pct: 36.7
+        sibling_f1: 0.603
+        f1_vs_gt: 0.294
+  base: v278fix
+  gen_hash: 3c70b352c969
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 100.0
+      content_vocab: 1272
+      direction: 0.816
+      g6_pct: 83.4
+      words_mean: 26.6
+      words_std: 3.8
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 35.1
+      sibling_f1: 0.651
+      f1_vs_gt: 0.364
+    val_seen:
+      n: 778
+      unique_pct: 100.0
+      content_vocab: 570
+      direction: 0.801
+      g6_pct: 84.7
+      words_mean: 26.7
+      words_std: 3.7
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 34.2
+      sibling_f1: 0.654
+      f1_vs_gt: 0.366
+    val_unseen:
+      n: 1839
+      unique_pct: 99.9
+      content_vocab: 616
+      direction: 0.862
+      g6_pct: 82.8
+      words_mean: 26.8
+      words_std: 3.9
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 35.0
+      sibling_f1: 0.653
+      f1_vs_gt: 0.36
+v278fix_stop-optional:
+  base: v278fix
+  gen_hash: 03b5d2e25cca
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 93.6
+      content_vocab: 1116
+      direction: 0.839
+      g6_pct: 88.3
+      words_mean: 27.0
+      words_std: 4.1
+      stop_pct:
+        stop: 97.7
+        none: 2.3
+      first_word_go_pct: 94.8
+      sibling_f1: 0.83
+      f1_vs_gt: 0.377
+    val_seen:
+      n: 778
+      unique_pct: 92.8
+      content_vocab: 469
+      direction: 0.814
+      g6_pct: 88.2
+      words_mean: 27.0
+      words_std: 3.9
+      stop_pct:
+        stop: 98.1
+        none: 1.9
+      first_word_go_pct: 96.1
+      sibling_f1: 0.841
+      f1_vs_gt: 0.376
+    val_unseen:
+      n: 1839
+      unique_pct: 93.6
+      content_vocab: 513
+      direction: 0.878
+      g6_pct: 88.6
+      words_mean: 27.1
+      words_std: 4.2
+      stop_pct:
+        stop: 98.2
+        none: 1.8
+      first_word_go_pct: 95.7
+      sibling_f1: 0.83
+      f1_vs_gt: 0.374
+v278fix_len-free:
+  base: v278fix
+  gen_hash: 039a8e367830
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 93.6
+      content_vocab: 1222
+      direction: 0.851
+      g6_pct: 92.3
+      words_mean: 31.2
+      words_std: 9.8
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 95.4
+      sibling_f1: 0.832
+      f1_vs_gt: 0.371
+    val_seen:
+      n: 778
+      unique_pct: 95.0
+      content_vocab: 523
+      direction: 0.844
+      g6_pct: 90.5
+      words_mean: 31.1
+      words_std: 9.1
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 96.1
+      sibling_f1: 0.838
+      f1_vs_gt: 0.37
+    val_unseen:
+      n: 1839
+      unique_pct: 93.7
+      content_vocab: 552
+      direction: 0.885
+      g6_pct: 93.0
+      words_mean: 31.8
+      words_std: 10.4
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 96.5
+      sibling_f1: 0.833
+      f1_vs_gt: 0.367
+v278fix_len-gtdist:
+  base: v278fix
+  gen_hash: d33ff861407d
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 96.8
+      content_vocab: 1107
+      direction: 0.86
+      g6_pct: 94.7
+      words_mean: 23.3
+      words_std: 6.3
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 94.8
+      sibling_f1: 0.76
+      f1_vs_gt: 0.368
+    val_seen:
+      n: 778
+      unique_pct: 97.6
+      content_vocab: 459
+      direction: 0.843
+      g6_pct: 94.6
+      words_mean: 23.6
+      words_std: 6.2
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 95.8
+      sibling_f1: 0.762
+      f1_vs_gt: 0.367
+    val_unseen:
+      n: 1839
+      unique_pct: 97.5
+      content_vocab: 517
+      direction: 0.89
+      g6_pct: 94.2
+      words_mean: 23.6
+      words_std: 6.7
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 96.2
+      sibling_f1: 0.754
+      f1_vs_gt: 0.363
+v278fix_fewshot-3:
+  base: v278fix
+  gen_hash: 32ec0921028e
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 99.0
+      content_vocab: 1138
+      direction: 0.847
+      g6_pct: 93.4
+      words_mean: 27.5
+      words_std: 4.1
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 44.4
+      sibling_f1: 0.784
+      f1_vs_gt: 0.386
+    val_seen:
+      n: 778
+      unique_pct: 99.2
+      content_vocab: 468
+      direction: 0.842
+      g6_pct: 94.2
+      words_mean: 27.3
+      words_std: 4.0
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 44.6
+      sibling_f1: 0.797
+      f1_vs_gt: 0.385
+    val_unseen:
+      n: 1839
+      unique_pct: 99.1
+      content_vocab: 519
+      direction: 0.892
+      g6_pct: 92.6
+      words_mean: 27.7
+      words_std: 4.2
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 46.4
+      sibling_f1: 0.786
+      f1_vs_gt: 0.384
+v278fix_fewshot-5:
+  base: v278fix
+  gen_hash: 506c3e04bdc5
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 98.9
+      content_vocab: 1148
+      direction: 0.852
+      g6_pct: 93.5
+      words_mean: 27.6
+      words_std: 4.1
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 35.0
+      sibling_f1: 0.787
+      f1_vs_gt: 0.388
+    val_seen:
+      n: 778
+      unique_pct: 98.3
+      content_vocab: 478
+      direction: 0.85
+      g6_pct: 94.9
+      words_mean: 27.5
+      words_std: 3.9
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 32.6
+      sibling_f1: 0.792
+      f1_vs_gt: 0.389
+    val_unseen:
+      n: 1839
+      unique_pct: 98.9
+      content_vocab: 514
+      direction: 0.884
+      g6_pct: 93.4
+      words_mean: 27.8
+      words_std: 4.2
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 37.3
+      sibling_f1: 0.789
+      f1_vs_gt: 0.387
+v278fix_g4temp-020:
+  base: v278fix
+  gen_hash: 216c154d2758
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 92.1
+      content_vocab: 1134
+      direction: 0.837
+      g6_pct: 91.0
+      words_mean: 26.9
+      words_std: 4.1
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 94.8
+      sibling_f1: 0.838
+      f1_vs_gt: 0.376
+    val_seen:
+      n: 778
+      unique_pct: 92.3
+      content_vocab: 473
+      direction: 0.812
+      g6_pct: 90.2
+      words_mean: 26.9
+      words_std: 3.8
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 96.4
+      sibling_f1: 0.846
+      f1_vs_gt: 0.374
+    val_unseen:
+      n: 1839
+      unique_pct: 92.7
+      content_vocab: 510
+      direction: 0.88
+      g6_pct: 91.0
+      words_mean: 27.1
+      words_std: 4.1
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 96.1
+      sibling_f1: 0.836
+      f1_vs_gt: 0.373
+v278fix_g4temp-070:
+  base: v278fix
+  gen_hash: 35014eba88d5
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 96.8
+      content_vocab: 1154
+      direction: 0.835
+      g6_pct: 91.3
+      words_mean: 27.0
+      words_std: 4.1
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 94.5
+      sibling_f1: 0.812
+      f1_vs_gt: 0.375
+    val_seen:
+      n: 778
+      unique_pct: 96.9
+      content_vocab: 479
+      direction: 0.811
+      g6_pct: 91.0
+      words_mean: 27.0
+      words_std: 4.0
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 96.0
+      sibling_f1: 0.819
+      f1_vs_gt: 0.373
+    val_unseen:
+      n: 1839
+      unique_pct: 97.4
+      content_vocab: 521
+      direction: 0.866
+      g6_pct: 90.5
+      words_mean: 27.1
+      words_std: 4.2
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 95.8
+      sibling_f1: 0.811
+      f1_vs_gt: 0.37
+v278fix_g4temp-100:
+  base: v278fix
+  gen_hash: 337d218fedf0
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 98.2
+      content_vocab: 1175
+      direction: 0.834
+      g6_pct: 91.6
+      words_mean: 27.0
+      words_std: 4.1
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 94.0
+      sibling_f1: 0.797
+      f1_vs_gt: 0.375
+    val_seen:
+      n: 778
+      unique_pct: 98.5
+      content_vocab: 491
+      direction: 0.811
+      g6_pct: 91.1
+      words_mean: 27.1
+      words_std: 4.0
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 95.6
+      sibling_f1: 0.803
+      f1_vs_gt: 0.374
+    val_unseen:
+      n: 1839
+      unique_pct: 98.6
+      content_vocab: 535
+      direction: 0.871
+      g6_pct: 90.8
+      words_mean: 27.2
+      words_std: 4.2
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 95.2
+      sibling_f1: 0.793
+      f1_vs_gt: 0.371
+v278fix_g3temp-020:
+  base: v278fix
+  gen_hash: fb13d835e337
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 87.2
+      content_vocab: 1062
+      direction: 0.836
+      g6_pct: 91.2
+      words_mean: 26.9
+      words_std: 4.1
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 94.7
+      sibling_f1: 0.868
+      f1_vs_gt: 0.376
+    val_seen:
+      n: 778
+      unique_pct: 87.8
+      content_vocab: 439
+      direction: 0.835
+      g6_pct: 90.5
+      words_mean: 27.0
+      words_std: 3.8
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 96.4
+      sibling_f1: 0.872
+      f1_vs_gt: 0.374
+    val_unseen:
+      n: 1839
+      unique_pct: 88.1
+      content_vocab: 478
+      direction: 0.878
+      g6_pct: 91.7
+      words_mean: 27.1
+      words_std: 4.1
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 96.6
+      sibling_f1: 0.868
+      f1_vs_gt: 0.373
+v278fix_g3temp-070:
+  base: v278fix
+  gen_hash: 62015933cfc9
+  status: deployed
+  metrics:
+    train:
+      n: 10819
+      unique_pct: 97.5
+      content_vocab: 1234
+      direction: 0.838
+      g6_pct: 90.8
+      words_mean: 26.9
+      words_std: 4.1
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 94.6
+      sibling_f1: 0.798
+      f1_vs_gt: 0.375
+    val_seen:
+      n: 778
+      unique_pct: 97.7
+      content_vocab: 498
+      direction: 0.808
+      g6_pct: 89.6
+      words_mean: 26.8
+      words_std: 3.9
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 95.8
+      sibling_f1: 0.806
+      f1_vs_gt: 0.372
+    val_unseen:
+      n: 1839
+      unique_pct: 97.4
+      content_vocab: 589
+      direction: 0.873
+      g6_pct: 91.1
+      words_mean: 27.1
+      words_std: 4.1
+      stop_pct:
+        stop: 100.0
+      first_word_go_pct: 95.9
+      sibling_f1: 0.798
+      f1_vs_gt: 0.372

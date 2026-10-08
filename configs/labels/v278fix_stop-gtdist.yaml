@@ -1,0 +1,4 @@
+label: v278fix_stop-gtdist
+base: v278fix
+prompt:
+  stop: gtdist
